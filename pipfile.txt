@@ -1,0 +1,16 @@
+fastapi
+sqlalchemy
+asyncpg
+alembic
+databases
+pytest
+psycopg2-binary
+celery
+flower
+redis
+aioredis
+aiobotocore
+fastapi-cache2
+passlib
+bcrypt
+password-validator

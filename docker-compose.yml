@@ -1,0 +1,42 @@
+version: "3.10"
+
+networks:
+  app-tier:
+    driver: bridge
+
+
+services:
+  app:
+    container_name: fastapi
+    build: .
+    command: ["docker/app.sh"]
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app/app
+    ports:
+      - '8000:8000'
+    environment:
+      DB_HOST: db
+    networks:
+      - app-tier
+    env_file:
+      - .env
+
+
+  db:
+      container_name: postgres
+      image: postgres
+      environment:
+        POSTGRES_USER: ${DB_USER}
+        POSTGRES_PASSWORD: ${DB_PASS}
+        POSTGRES_DB: ${DB_NAME}
+      ports:
+        - "5432:5432"
+      volumes:
+        - .postgres:/var/lib/postgres/data
+      restart: always
+      networks:
+        - app-tier
+      env_file:
+        - .env
