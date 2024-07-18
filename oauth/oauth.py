@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.models import Users
 from database_engine import get_async_session
 from .hashing import Hasher
-from .crud_database import get_user, add_user_in_database, exists_user_by_phone, change_password_db
+from .crud_database import get_user, add_user_in_database, exists_user_by_phone, change_password_db, delete_user_db
 from .schema import GetMeUser, RegisterUser, ChangePassword
 
 router = APIRouter()
@@ -42,6 +42,21 @@ def basic_auth(user: Dict = Depends(basic_auth_validate)):
 def get_user_me(user: Users = Depends(get_current_user)):
     """Возвращает профиль пользователя"""
     return user
+
+
+@router.put('/update/me/profile/')
+async def update_auth_user(user: Annotated[HTTPBasicCredentials, Depends(security)],
+                           session: AsyncSession = Depends(get_async_session)):
+    """Функция не работает"""
+    return "Функция заглушка"
+
+
+@router.delete('/delete/me/profile/')
+async def delete_auth_user(user: Annotated[HTTPBasicCredentials, Depends(security)],
+                           session: AsyncSession = Depends(get_async_session)):
+    """Удаление авторизованного пользователя"""
+    await delete_user_db(username=user.username, session=session)
+    return {"success": "Пользователь успешно удален"}
 
 
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
