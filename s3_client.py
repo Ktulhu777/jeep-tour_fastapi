@@ -1,8 +1,8 @@
 from minio import Minio
-from config import host, access_key, secret_key
+from config.config import HOST_MINIO, ACCESS_KEY, SECRET_KEY
 
 
-s3client = Minio(endpoint=host,
-                 access_key=access_key,
-                 secret_key=secret_key,
+s3client = Minio(endpoint=HOST_MINIO,
+                 access_key=ACCESS_KEY,
+                 secret_key=SECRET_KEY,
                  secure=False)

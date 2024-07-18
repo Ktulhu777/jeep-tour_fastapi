@@ -1,14 +1,16 @@
 #  python API #
-from typing import Annotated, Dict
+from typing import Annotated, Dict, Optional
+import os
 
 #  сторонние библиотеки #
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # мои модули #
 from models.models import Users
 from database_engine import get_async_session
+from s3_client import s3client
 from .hashing import Hasher
 from .crud_database import get_user, add_user_in_database, exists_user_by_phone, change_password_db, delete_user_db
 from .schema import GetMeUser, RegisterUser, ChangePassword
@@ -56,16 +58,23 @@ async def delete_auth_user(user: Annotated[HTTPBasicCredentials, Depends(securit
                            session: AsyncSession = Depends(get_async_session)):
     """Удаление авторизованного пользователя"""
     await delete_user_db(username=user.username, session=session)
+    s3client.remove_bucket(user.username)
     return {"success": "Пользователь успешно удален"}
 
 
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
-async def register_user(user: RegisterUser,
+async def register_user(user: Annotated[RegisterUser, Depends()],
+                        photo: UploadFile = File(...),
                         session: AsyncSession = Depends(get_async_session)):
     """Регистрация пользователя на сайте"""
     hashed_password = Hasher.get_password_hash(user.password_1)
+    username = user.username
     await exists_user_by_phone(user.phone, session)
-    await add_user_in_database(user.username, user.phone, hashed_password, session)
+    await add_user_in_database(username, user.phone, hashed_password, session)
+    s3client.make_bucket(username)
+    if photo:
+        file_size = os.fstat(photo.file.fileno()).st_size
+        s3client.put_object(username, photo.filename, photo.file, file_size)
     return {"success": "Пользователь успешно зарегистрирован!"}
 
 
