@@ -10,17 +10,17 @@ app = FastAPI(title="Jeep tour")
 app.include_router(router=oauth, prefix="/user")
 
 origins = [
-    "http://localhost",
-    "http://localhost:8080",
+    "http://localhost:8001",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 def index_home():
