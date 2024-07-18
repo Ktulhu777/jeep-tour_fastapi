@@ -60,7 +60,7 @@ async def delete_auth_user(user: Annotated[HTTPBasicCredentials, Depends(securit
 
 
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
-async def register_user(user: Annotated[RegisterUser, Depends()],
+async def register_user(user: RegisterUser,
                         session: AsyncSession = Depends(get_async_session)):
     """Регистрация пользователя на сайте"""
     hashed_password = Hasher.get_password_hash(user.password_1)
