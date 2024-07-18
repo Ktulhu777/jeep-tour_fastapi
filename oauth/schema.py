@@ -10,8 +10,7 @@ from password_validator import PasswordValidator
 password_validate = PasswordValidator()
 password_validate.min(8) \
     .has().digits() \
-    .has().letters() \
-    .has().symbols()
+    .has().letters()
 
 
 class RegisterUser(BaseModel):
