@@ -5,6 +5,7 @@ from typing import Annotated, Dict
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import Json
 
 # мои модули #
 from models.models import Users
@@ -60,7 +61,7 @@ async def delete_auth_user(user: Annotated[HTTPBasicCredentials, Depends(securit
 
 
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
-async def register_user(user: RegisterUser,
+async def register_user(user: Json[RegisterUser],
                         session: AsyncSession = Depends(get_async_session)):
     """Регистрация пользователя на сайте"""
     hashed_password = Hasher.get_password_hash(user.password_1)
