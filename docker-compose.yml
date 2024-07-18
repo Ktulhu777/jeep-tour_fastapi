@@ -10,6 +10,7 @@ services:
                     uvicorn app:app --reload --host=0.0.0.0 --port=8000"
     depends_on:
       - db
+      - minio
     volumes:
       - ./app:/app/app
     ports:
@@ -37,3 +38,19 @@ services:
         - app-tier
       env_file:
         - .env
+
+  minio:
+    depends_on:
+      - db
+    image: bitnami/minio:latest
+    ports:
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: minioroot
+      MINIO_ROOT_PASSWORD: miniopassword
+      MINIO_SERVER_ACCESS_KEY: ${ACCESS_KEY}
+      MINIO_SERVER_SECRET_KEY: ${SECRET_KEY}
+    networks:
+      - app-tier
+    env_file:
+      - .env
