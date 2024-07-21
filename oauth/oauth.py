@@ -35,7 +35,7 @@ async def get_current_user(user: Annotated[HTTPBasicCredentials, Depends(securit
 
 @router.post("/auth/", response_model=GetMeUser)
 def basic_auth(user: Dict = Depends(basic_auth_validate)):
-    """Функция происзводит авторизацию пользователя"""
+    """Функция производит авторизацию пользователя"""
     return user
 
 
@@ -64,9 +64,9 @@ async def delete_auth_user(user: Annotated[HTTPBasicCredentials, Depends(securit
 async def register_user(user: Json[RegisterUser],
                         session: AsyncSession = Depends(get_async_session)):
     """Регистрация пользователя на сайте"""
-    hashed_password = Hasher.get_password_hash(user.password_1)
-    await exists_user_by_phone(user.phone, session)
-    await add_user_in_database(user.username, user.phone, hashed_password, session)
+    await exists_user_by_phone(user.phone, session)  # проверяем наличие юзера с таким номером телефона
+    hashed_password = Hasher.get_password_hash(user.password_1)  # получаем hash нового пароля
+    await add_user_in_database(user.username, user.phone, hashed_password, session)  # добавляем пользователя
     return {"success": "Пользователь успешно зарегистрирован!"}
 
 

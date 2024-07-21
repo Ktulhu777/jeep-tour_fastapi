@@ -36,7 +36,7 @@ class RegisterUser(BaseModel):
                                 detail="Пароли не равны!")
         if not password_validate.validate(pw1):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Пароль должен содержать латинские буквы, цифры и спец.символы")
+                                detail="Пароль должен содержать латинские буквы, цифры")
         return self
 
 
@@ -54,7 +54,7 @@ class ChangePassword(BaseModel):
                                 detail="Пароли не равны!")
         if not password_validate.validate(pw1):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Пароль должен содержать латинские буквы, цифры и спец.символы")
+                                detail="Пароль должен содержать латинские буквы, цифры")
         return self
 
 
