@@ -18,19 +18,26 @@ router = APIRouter()
 security = HTTPBasic()
 
 
-async def basic_auth_validate(user: Annotated[HTTPBasicCredentials, Depends(security)],
-                              session: AsyncSession = Depends(get_async_session)):
-    user_with_db = await get_user(username=user.username, session=session)
-    if not Hasher.verify_password(plain_password=user.password, hashed_password=user_with_db.hashed_password):
+async def get_auth_user_and_session(
+        user: Annotated[HTTPBasicCredentials, Depends(security)],
+        session: AsyncSession = Depends(get_async_session)
+) -> Dict:
+    return {"user": user,
+            "session": session}
+
+
+async def basic_auth_validate(component: Dict = Depends(get_auth_user_and_session)):
+    user_with_db = await get_user(username=component['user'].username, session=component['session'])
+    if not Hasher.verify_password(plain_password=component['user'].password,
+                                  hashed_password=user_with_db.hashed_password):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Invalid username or password")
     return user_with_db
 
 
-async def get_current_user(user: Annotated[HTTPBasicCredentials, Depends(security)],
-                           session: AsyncSession = Depends(get_async_session)):
+async def get_current_user(user: Dict = Depends(basic_auth_validate)):
     """Функция получает авторизованного текущего пользователя"""
-    return await get_user(username=user.username, session=session)
+    return user
 
 
 @router.post("/auth/", response_model=GetMeUser)
@@ -46,17 +53,15 @@ def get_user_me(user: Users = Depends(get_current_user)):
 
 
 @router.put('/update/me/profile/')
-async def update_auth_user(user: Annotated[HTTPBasicCredentials, Depends(security)],
-                           session: AsyncSession = Depends(get_async_session)):
+async def update_auth_user(component: Dict = Depends(get_auth_user_and_session)):
     """Функция не работает"""
     return "Функция заглушка"
 
 
 @router.delete('/delete/me/profile/')
-async def delete_auth_user(user: Annotated[HTTPBasicCredentials, Depends(security)],
-                           session: AsyncSession = Depends(get_async_session)):
+async def delete_auth_user(component: Dict = Depends(get_auth_user_and_session)):
     """Удаление авторизованного пользователя"""
-    await delete_user_db(username=user.username, session=session)
+    await delete_user_db(username=component['user'].username, session=component['session'])
     return {"success": "Пользователь успешно удален"}
 
 
@@ -71,20 +76,19 @@ async def register_user(user: Json[RegisterUser],
 
 
 @router.post("/change-password/")
-async def change_password(user: Annotated[HTTPBasicCredentials, Depends(security)],
-                          password: Annotated[ChangePassword, Depends()],
+async def change_password(password: Annotated[ChangePassword, Depends()],
+                          user: Users = Depends(basic_auth_validate),  # текущий пользователь
                           session: AsyncSession = Depends(get_async_session)):
     """Функция смены пароля"""
     # Проверка паролей
-    user_with_db = await get_user(user.username, session)
     if not Hasher.verify_password(
             plain_password=password.old_password,
-            hashed_password=user_with_db.hashed_password):
+            hashed_password=user.hashed_password):  # сравниваем полученный пароль со старым
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Неверный старый пароль")
     # Обновление пароля
-    new_hashed_password = Hasher.get_password_hash(password.password_1)
-    await change_password_db(username=user_with_db.username,
+    new_hashed_password = Hasher.get_password_hash(password.password_1)  # получаем hash нового пароля
+    await change_password_db(username=user.username,
                              new_hash_password=new_hashed_password,
                              session=session)
-    return {"success": "Пароль изменен"}
+    return {"success": "Пароль успешно изменен!"}
