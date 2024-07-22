@@ -52,7 +52,7 @@ def get_user_me(user: Users = Depends(get_current_user)):
     return user
 
 
-@router.put('/update/me/profile/')
+@router.patch('/update/me/profile/')
 async def update_auth_user(component: Dict = Depends(get_auth_user_and_session)):
     """Функция не работает"""
     return "Функция заглушка"
@@ -76,7 +76,7 @@ async def register_user(user: Json[RegisterUser],
 
 
 @router.post("/change-password/")
-async def change_password(password: Annotated[ChangePassword, Depends()],
+async def change_password(password: Json[ChangePassword],
                           user: Users = Depends(basic_auth_validate),  # текущий пользователь
                           session: AsyncSession = Depends(get_async_session)):
     """Функция смены пароля"""
