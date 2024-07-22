@@ -76,7 +76,7 @@ async def register_user(user: Json[RegisterUser],
 
 
 @router.post("/change-password/")
-async def change_password(password: Json[ChangePassword],
+async def change_password(password: ChangePassword,
                           user: Users = Depends(basic_auth_validate),  # текущий пользователь
                           session: AsyncSession = Depends(get_async_session)):
     """Функция смены пароля"""
