@@ -66,6 +66,7 @@ class GetUser(BaseModel):
 
 
 class GetMeUser(GetUser):
+    url: str
     register_data: datetime
     is_active: bool
     is_superuser: bool

@@ -1,21 +1,26 @@
 #  python API #
+from io import BytesIO
 from typing import Annotated, Dict
 
 #  сторонние библиотеки #
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import Json
+from aiohttp import ClientSession
 
 # мои модули #
 from models.models import Users
 from database_engine import get_async_session
+from s3_client import S3Client
+from config.config import HOST_MINIO, ACCESS_KEY, SECRET_KEY
 from .hashing import Hasher
 from .crud_database import get_user, add_user_in_database, exists_user_by_phone, change_password_db, delete_user_db
 from .schema import GetMeUser, RegisterUser, ChangePassword
 
 router = APIRouter()
 security = HTTPBasic()
+s3_client = S3Client(endpoint=HOST_MINIO, access_key=ACCESS_KEY, secret_key=SECRET_KEY, secure=False)
 
 
 async def get_auth_user_and_session(
@@ -35,7 +40,7 @@ async def basic_auth_validate(component: Dict = Depends(get_auth_user_and_sessio
     return user_with_db
 
 
-async def get_current_user(user: Dict = Depends(basic_auth_validate)):
+async def get_current_user(user: Users = Depends(basic_auth_validate)):
     """Функция получает авторизованного текущего пользователя"""
     return user
 
@@ -46,10 +51,23 @@ def basic_auth(user: Dict = Depends(basic_auth_validate)):
     return user
 
 
-@router.get("/me/profile/", response_model=GetMeUser)
-def get_user_me(user: Users = Depends(get_current_user)):
+@router.get("/me/profile/")  # , response_model=GetMeUser
+async def get_user_me(user: Users = Depends(get_current_user)):
     """Возвращает профиль пользователя"""
-    return user
+    async with ClientSession() as session:
+        photo = await s3_client.get_object(bucket_name=user.username,
+                                           object_name=f'ava_{user.username}.png',
+                                           session=session)
+
+    return GetMeUser(id=user.id, username=user.username, phone=user.phone, url=str(photo.url),
+                     register_data=user.register_data, is_active=user.is_active, is_superuser=user.is_superuser,
+                     is_verified=user.is_verified)
+
+
+@router.put("/update/avatar/")
+async def update_avatar(photo: UploadFile,
+                        user: Users = Depends(get_current_user)):
+    await s3_client.add_avatar(photo=photo, username=user.username)
 
 
 @router.patch('/update/me/profile/')
@@ -62,6 +80,7 @@ async def update_auth_user(component: Dict = Depends(get_auth_user_and_session))
 async def delete_auth_user(component: Dict = Depends(get_auth_user_and_session)):
     """Удаление авторизованного пользователя"""
     await delete_user_db(username=component['user'].username, session=component['session'])
+    await s3_client.remove_bucket(component['user'].username)
     return {"success": "Пользователь успешно удален"}
 
 
@@ -72,6 +91,7 @@ async def register_user(user: Json[RegisterUser],
     await exists_user_by_phone(user.phone, session)  # проверяем наличие юзера с таким номером телефона
     hashed_password = Hasher.get_password_hash(user.password_1)  # получаем hash нового пароля
     await add_user_in_database(user.username, user.phone, hashed_password, session)  # добавляем пользователя
+    await s3_client.make_bucket(user.username)
     return {"success": "Пользователь успешно зарегистрирован!"}
 
 

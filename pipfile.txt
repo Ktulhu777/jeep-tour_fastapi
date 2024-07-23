@@ -14,4 +14,4 @@ fastapi-cache2
 passlib
 bcrypt
 password-validator
-minio
+miniopy-async
