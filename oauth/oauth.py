@@ -12,15 +12,13 @@ from aiohttp import ClientSession
 # мои модули #
 from models.models import Users
 from database_engine import get_async_session
-from s3_client import S3Client
-from config.config import HOST_MINIO, ACCESS_KEY, SECRET_KEY
+from s3_client import s3_client
 from .hashing import Hasher
 from .crud_database import get_user, add_user_in_database, exists_user_by_phone, change_password_db, delete_user_db
 from .schema import GetMeUser, RegisterUser, ChangePassword
 
 router = APIRouter()
 security = HTTPBasic()
-s3_client = S3Client(endpoint=HOST_MINIO, access_key=ACCESS_KEY, secret_key=SECRET_KEY, secure=False)
 
 
 async def get_auth_user_and_session(
