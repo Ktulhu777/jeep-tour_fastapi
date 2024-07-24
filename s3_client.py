@@ -17,3 +17,4 @@ class S3Client(Minio):
 
 
 s3_client = S3Client(endpoint=HOST_MINIO, access_key=ACCESS_KEY, secret_key=SECRET_KEY, secure=False)
+
