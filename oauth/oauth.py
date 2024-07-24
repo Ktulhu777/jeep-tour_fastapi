@@ -12,6 +12,7 @@ from models.models import Users
 from database_engine import get_async_session
 from s3_client import s3_client
 from .hashing import Hasher
+from .default_img import make_default_png
 from .crud_database import get_user, add_user_in_database, exists_user_by_phone, change_password_db, delete_user_db
 from .schema import GetMeUser, RegisterUser, ChangePassword
 
@@ -61,7 +62,7 @@ async def get_user_me(user: Users = Depends(get_current_user)):
                      is_verified=user.is_verified)
 
 
-@router.put("/update/avatar/")
+@router.put("/update/avatar/", status_code=status.HTTP_201_CREATED)
 async def update_avatar(photo: UploadFile,
                         user: Users = Depends(get_current_user)):
     """Добавляет аватарку пользователю"""
@@ -91,6 +92,7 @@ async def register_user(user: RegisterUser,
     hashed_password = Hasher.get_password_hash(user.password_1)  # получаем hash нового пароля
     await add_user_in_database(user.username, user.phone, hashed_password, session)  # добавляем пользователя
     await s3_client.make_bucket(user.username)  # создает bucket по username
+    await s3_client.add_default_avatar(username=user.username, filename=make_default_png(username=user.username))
     return {"success": "Пользователь успешно зарегистрирован!"}
 
 

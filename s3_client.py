@@ -15,6 +15,18 @@ class S3Client(Minio):
                                   file_size)
             return True
 
+    async def add_default_avatar(self, username, filename):
+        with open(filename, mode='rb') as photo:
+            file_size = os.path.getsize(photo.fileno())
+            await self.put_object(
+                username,
+                filename,
+                photo,
+                file_size
+            )
+        os.remove(filename)
+        return True
+
 
 s3_client = S3Client(endpoint=HOST_MINIO, access_key=ACCESS_KEY, secret_key=SECRET_KEY, secure=False)
 
