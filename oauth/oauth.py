@@ -43,9 +43,17 @@ async def get_current_user(user: Users = Depends(basic_auth_validate)):
 
 
 @router.post("/auth/", response_model=GetMeUser)
-def basic_auth(user: Dict = Depends(basic_auth_validate)):
+async def basic_auth(user: Users = Depends(basic_auth_validate)):
     """Функция производит авторизацию пользователя"""
-    return user
+    async with ClientSession() as session:
+        photo = await s3_client.get_object(bucket_name=user.username,
+                                           object_name=f'ava_{user.username}.png',
+                                           session=session)
+
+    return GetMeUser(id=user.id, username=user.username, phone=user.phone,
+                     url=str(photo.url).replace('minio', 'localhost'),  # пока оставлю костыль
+                     register_data=user.register_data, is_active=user.is_active, is_superuser=user.is_superuser,
+                     is_verified=user.is_verified)
 
 
 @router.get("/me/profile/", response_model=GetMeUser)
