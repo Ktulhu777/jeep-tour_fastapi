@@ -7,7 +7,7 @@ services:
   app:
     build: .
     command: sh -c "alembic upgrade head &&
-                    uvicorn app:app --reload --host=0.0.0.0 --port=8000"
+                    uvicorn app:app --host=0.0.0.0 --port=8000"
     depends_on:
       - db
       - minio
@@ -17,6 +17,7 @@ services:
       - '8000:8000'
     environment:
       DB_HOST: db
+      HOST_MINIO: minio:9000
     networks:
       - app-tier
     env_file:
@@ -36,20 +37,16 @@ services:
       restart: always
       networks:
         - app-tier
-      env_file:
-        - .env
 
   minio:
     depends_on:
       - db
-    image: bitnami/minio:latest
+    image: bitnami/minio
     ports:
-#      - '9000:9000'
+      - '9000:9000'
       - '9001:9001'
     environment:
       MINIO_ROOT_USER: minioroot
       MINIO_ROOT_PASSWORD: miniopassword
     networks:
       - app-tier
-    env_file:
-      - .env

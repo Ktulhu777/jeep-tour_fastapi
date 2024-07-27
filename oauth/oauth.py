@@ -96,11 +96,12 @@ async def delete_auth_user(component: Dict = Depends(get_auth_user_and_session))
 async def register_user(user: RegisterUser,
                         session: AsyncSession = Depends(get_async_session)):
     """Регистрация пользователя на сайте"""
+    username = user.username
     await exists_user_by_phone(user.phone, session)  # проверяем наличие юзера с таким номером телефона
     hashed_password = Hasher.get_password_hash(user.password_1)  # получаем hash нового пароля
-    await add_user_in_database(user.username, user.phone, hashed_password, session)  # добавляем пользователя
-    await s3_client.make_bucket(user.username)  # создает bucket по username
-    await s3_client.add_default_avatar(username=user.username, filename=make_default_png(username=user.username))
+    await add_user_in_database(username, user.phone, hashed_password, session)  # добавляем пользователя
+    await s3_client.make_bucket(username)  # создает bucket по username
+    await s3_client.add_default_avatar(username=username, filename=make_default_png(username=username))
     return {"success": "Пользователь успешно зарегистрирован!"}
 
 
