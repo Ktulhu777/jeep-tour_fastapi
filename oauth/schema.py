@@ -5,12 +5,8 @@ from re import fullmatch
 
 from pydantic import BaseModel, model_validator, Field, field_validator, EmailStr
 from fastapi import HTTPException, status
-from password_validator import PasswordValidator
 
-password_validate = PasswordValidator()
-password_validate.min(8) \
-    .has().digits() \
-    .has().letters()
+from .validators import password_validate
 
 
 class RegisterUser(BaseModel):
@@ -34,7 +30,7 @@ class RegisterUser(BaseModel):
         if pw1 != pw2:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Пароли не равны!")
-        if not password_validate.validate(pw1):
+        if password_validate(password=pw1):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Пароль должен содержать латинские буквы, цифры")
         return self
@@ -52,7 +48,7 @@ class ChangePassword(BaseModel):
         if pw1 != pw2:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Пароли не равны!")
-        if not password_validate.validate(pw1):
+        if password_validate(password=pw1):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Пароль должен содержать латинские буквы, цифры")
         return self
