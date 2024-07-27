@@ -17,8 +17,6 @@ services:
       - '8000:8000'
     environment:
       DB_HOST: db
-      MINIO_SERVER_ACCESS_KEY: ${ACCESS_KEY}
-      MINIO_SERVER_SECRET_KEY: ${SECRET_KEY}
     networks:
       - app-tier
     env_file:
@@ -46,7 +44,7 @@ services:
       - db
     image: bitnami/minio:latest
     ports:
-      - '9000:9000'
+#      - '9000:9000'
       - '9001:9001'
     environment:
       MINIO_ROOT_USER: minioroot

@@ -10,9 +10,9 @@ from aiohttp import ClientSession
 # мои модули #
 from models.models import Users
 from database_engine import get_async_session
+from default_img import make_default_png
 from s3_client import s3_client
 from .hashing import Hasher
-from .default_img import make_default_png
 from .crud_database import get_user, add_user_in_database, exists_user_by_phone, change_password_db, delete_user_db
 from .schema import GetMeUser, RegisterUser, ChangePassword
 
