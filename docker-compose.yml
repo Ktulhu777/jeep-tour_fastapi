@@ -23,7 +23,6 @@ services:
     env_file:
       - .env
 
-
   db:
       image: postgres
       environment:
@@ -48,5 +47,24 @@ services:
     environment:
       MINIO_ROOT_USER: minioroot
       MINIO_ROOT_PASSWORD: miniopassword
+    networks:
+      - app-tier
+
+  redis:
+    image: redis:7
+    command: --port 5370
+    expose:
+      - 5370
+    networks:
+      - app-tier
+
+  celery:
+    build:
+      context: .
+    command: sh -c "celery --app=worker.worker:celery worker -l INFO"
+    depends_on:
+      - redis
+    env_file:
+      - .env
     networks:
       - app-tier

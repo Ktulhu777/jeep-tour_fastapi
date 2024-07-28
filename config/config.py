@@ -14,3 +14,8 @@ DB_PASS = os.environ.get("DB_PASS")
 HOST_MINIO = os.environ.get("HOST_MINIO")
 ACCESS_KEY = os.environ.get("ACCESS_KEY")
 SECRET_KEY = os.environ.get("SECRET_KEY")
+
+# redis
+REDIS_HOST = os.environ.get("REDIS_HOST")
+REDIS_PORT = os.environ.get("REDIS_PORT")
+

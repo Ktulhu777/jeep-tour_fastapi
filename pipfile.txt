@@ -8,9 +8,9 @@ psycopg2-binary
 celery
 flower
 redis
-aioredis
+aioredis==2.0.0a1
 aiobotocore
-fastapi-cache2
+fastapi-cache2[redis]
 passlib
 bcrypt
 password-validator

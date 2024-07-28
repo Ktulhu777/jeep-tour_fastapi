@@ -12,6 +12,7 @@ from models.models import Users
 from database_engine import get_async_session
 from default_img import make_default_png
 from s3_client import s3_client
+from worker.worker import image
 from .hashing import Hasher
 from .crud_database import get_user, add_user_in_database, exists_user_by_phone, change_password_db, delete_user_db
 from .schema import GetMeUser, RegisterUser, ChangePassword
@@ -70,11 +71,22 @@ async def get_user_me(user: Users = Depends(get_current_user)):
                      is_verified=user.is_verified)
 
 
-@router.put("/update/avatar/", status_code=status.HTTP_201_CREATED)
-async def update_avatar(photo: UploadFile,
-                        user: Users = Depends(get_current_user)):
+@router.patch("/update/avatar/", status_code=status.HTTP_201_CREATED)
+async def update_avatar(photo: UploadFile, user: Users = Depends(get_current_user)):
     """Добавляет аватарку пользователю"""
-    await s3_client.add_avatar(photo=photo, username=user.username)
+    photo_data = await photo.read()  # Читаем содержимое файла
+    filename = f'ava_{user.username}.png'  # Временный файл на диске
+
+    # Сохраняем файл на диск
+    with open(filename, 'wb') as f:
+        f.write(photo_data)
+        f.close()
+
+    task = image.delay(user.username, filename)
+    result = task.get()
+
+    await s3_client.add_avatar(username=user.username, filename=result)
+
     return {"success": "Добавлено фото профиля"}
 
 

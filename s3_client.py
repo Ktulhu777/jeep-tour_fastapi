@@ -22,13 +22,17 @@ class S3Client(Minio):
         await super().make_bucket(bucket_name, location, object_lock)
         await self.set_policy(bucket_name)
 
-    async def add_avatar(self, photo: UploadFile, username: str):
-        if photo:
-            file_size = os.fstat(photo.file.fileno()).st_size
-            await self.put_object(username,
-                                  f'ava_{username}.{photo.filename[photo.filename.find(".") + 1:]}', photo.file,
-                                  file_size)
-            return True
+    async def add_avatar(self, username: str, filename: str):
+        with open(filename, mode='rb') as photo:
+            file_size = os.path.getsize(photo.fileno())
+            await self.put_object(
+                username,
+                filename,
+                photo,
+                file_size
+            )
+        os.remove(filename)  # Удаляем конечный файл в приложении
+        return True
 
     async def add_default_avatar(self, username, filename):
         with open(filename, mode='rb') as photo:
