@@ -22,7 +22,7 @@ async def exists_user_by_username(username: str, session: AsyncSession):
     user = await session.execute(select(Users).where(Users.username == username))
     if user.scalar():
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="Пользователь с таким Nickname уже существует")
+                            detail="A user with the same Nickname already exists")
 
 
 async def get_user(username: str, session: AsyncSession):
@@ -46,7 +46,7 @@ async def exists_user_by_phone(number_phone: str, session: AsyncSession):
     user = await session.execute(select(Users).where(Users.phone == number_phone))
     if user.scalar():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Пользователь с таким номером телефона уже существует")
+                            detail="A user with the same phone number already exists")
 
 
 async def change_password_db(username: str,

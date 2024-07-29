@@ -20,7 +20,7 @@ class RegisterUser(BaseModel):
     def validate_phone(cls, phone: str) -> str:
         if not fullmatch(r'(\+7|8)\D*\d{3}\D*\d{3}\D*\d{2}\D*\d{2}', phone):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Неправильный номер телефона")
+                                detail="Incorrect phone number")
         return phone
 
     @model_validator(mode='after')
@@ -29,10 +29,10 @@ class RegisterUser(BaseModel):
         pw2 = self.password_2
         if pw1 != pw2:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Пароли не равны!")
+                                detail="Passwords are not equal!")
         if password_validate(password=pw1):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Пароль должен содержать латинские буквы, цифры")
+                                detail="The password must contain Latin letters and numbers")
         return self
 
 
@@ -47,10 +47,10 @@ class ChangePassword(BaseModel):
         pw2 = self.password_2
         if pw1 != pw2:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Пароли не равны!")
+                                detail="Incorrect phone number!")
         if password_validate(password=pw1):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Пароль должен содержать латинские буквы, цифры")
+                                detail="The password must contain Latin letters and numbers")
         return self
 
 

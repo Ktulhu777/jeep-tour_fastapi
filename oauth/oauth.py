@@ -96,7 +96,7 @@ async def delete_auth_user(component: Dict = Depends(get_auth_user_and_session))
     """Удаление авторизованного пользователя"""
     await delete_user_db(username=component['user'].username, session=component['session'])
     await s3_client.remove_bucket(component['user'].username)
-    return {"success": "Пользователь успешно удален"}
+    return {"success": "User deleted successfully!"}
 
 
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
@@ -109,7 +109,7 @@ async def register_user(user: RegisterUser,
     await add_user_in_database(username, user.phone, hashed_password, session)  # добавляем пользователя
     await s3_client.make_bucket(username)  # создает bucket по username
     await s3_client.add_default_avatar(username=username, filename=make_default_png(username=username))
-    return {"success": "Пользователь успешно зарегистрирован!"}
+    return {"success": "User successfully registered!"}
 
 
 @router.post("/change-password/")
@@ -122,10 +122,10 @@ async def change_password(password: ChangePassword,
             plain_password=password.old_password,
             hashed_password=user.hashed_password):  # сравниваем полученный пароль со старым
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Неверный старый пароль")
+                            detail="Invalid old password")
     # Обновление пароля
     new_hashed_password = Hasher.get_password_hash(password.password_1)  # получаем hash нового пароля
     await change_password_db(username=user.username,
                              new_hash_password=new_hashed_password,
                              session=session)
-    return {"success": "Пароль успешно изменен!"}
+    return {"success": "Password changed successfully!"}
