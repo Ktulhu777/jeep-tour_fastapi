@@ -70,24 +70,19 @@ async def get_user_me(user: Users = Depends(get_current_user)):
                      register_data=user.register_data, is_active=user.is_active, is_superuser=user.is_superuser,
                      is_verified=user.is_verified)
 
-
-@router.patch("/update/avatar/", status_code=status.HTTP_201_CREATED)
+@router.patch('/update/avatar/') # /update/avatar/
 async def update_avatar(photo: UploadFile, user: Users = Depends(get_current_user)):
     """Добавляет аватарку пользователю"""
-    photo_data = await photo.read()  # Читаем содержимое файла
-    filename = f'ava_{user.username}.png'  # Временный файл на диске
+    photo_data = await photo.read()
+    filename = f'ava_{user.username}.png'
 
-    # Сохраняем файл на диск
-    with open(filename, 'wb') as f:
+    with open(filename, mode='wb') as f:
         f.write(photo_data)
-        f.close()
 
-    task = image.delay(user.username, filename)
+    task = image.delay(photo_data, filename)
     result = task.get()
 
     await s3_client.add_avatar(username=user.username, filename=result)
-
-    return {"success": "Добавлено фото профиля"}
 
 
 @router.patch('/update/me/profile/')

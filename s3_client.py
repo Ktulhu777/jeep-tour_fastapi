@@ -1,7 +1,6 @@
 import json
 import os
 
-from fastapi import UploadFile
 from miniopy_async import Minio
 from config.config import HOST_MINIO, ACCESS_KEY, SECRET_KEY
 
