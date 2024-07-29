@@ -83,6 +83,7 @@ async def update_avatar(photo: UploadFile, user: Users = Depends(get_current_use
     result = task.get()
 
     await s3_client.add_avatar(username=user.username, filename=result)
+    return {"success": "Photo updated successfully"}
 
 
 @router.patch('/update/me/profile/')
