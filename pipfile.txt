@@ -1,4 +1,6 @@
 fastapi
+pydantic[email]
+python-multipart
 sqlalchemy
 asyncpg
 alembic
@@ -9,10 +11,10 @@ celery
 flower
 redis
 aioredis==2.0.0a1
-aiobotocore
 fastapi-cache2[redis]
 passlib
 bcrypt
 password-validator
 miniopy-async
 pillow
+python-dotenv
