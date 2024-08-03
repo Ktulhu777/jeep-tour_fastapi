@@ -70,7 +70,8 @@ async def get_user_me(user: Users = Depends(get_current_user)):
                      register_data=user.register_data, is_active=user.is_active, is_superuser=user.is_superuser,
                      is_verified=user.is_verified)
 
-@router.patch('/update/avatar/') # /update/avatar/
+
+@router.patch('/update/avatar/')  # /update/avatar/
 async def update_avatar(photo: UploadFile, user: Users = Depends(get_current_user)):
     """Добавляет аватарку пользователю"""
     photo_data = await photo.read()
@@ -93,10 +94,17 @@ async def update_auth_user(component: Dict = Depends(get_auth_user_and_session))
 
 
 @router.delete('/delete/me/profile/')
-async def delete_auth_user(component: Dict = Depends(get_auth_user_and_session)):
+async def delete_auth_user(
+        password: str,
+        component: Dict = Depends(get_auth_user_and_session)
+):
     """Удаление авторизованного пользователя"""
-    await delete_user_db(username=component['user'].username, session=component['session'])
-    await s3_client.remove_bucket(component['user'].username)
+    username = component['user'].username
+    if component['user'].password != password:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Invalid old password")
+    await delete_user_db(username=username, session=component['session'])
+    await s3_client.remove_bucket(username)
     return {"success": "User deleted successfully!"}
 
 

@@ -47,7 +47,7 @@ class ChangePassword(BaseModel):
         pw2 = self.password_2
         if pw1 != pw2:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Incorrect phone number!")
+                                detail="Passwords are not equal!")
         if password_validate(password=pw1):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="The password must contain Latin letters and numbers")
