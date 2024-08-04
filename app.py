@@ -7,9 +7,11 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 # мои модули
 from oauth.oauth import router as oauth
+from home_page.home import router as attraction
 from config.config import REDIS_HOST, REDIS_PORT
 
 app = FastAPI(title="Jeep tour")
+app.include_router(router=attraction)
 app.include_router(router=oauth, prefix="/user")
 
 origins = [
@@ -23,11 +25,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"],
     allow_headers=["*"],
 )
-
-
-@app.get("/")
-def index_home():
-    return "Главная страница"
 
 
 @app.on_event('startup')
