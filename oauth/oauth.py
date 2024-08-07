@@ -38,11 +38,6 @@ async def basic_auth_validate(component: Dict = Depends(get_auth_user_and_sessio
     return user_with_db
 
 
-async def get_current_user(user: Users = Depends(basic_auth_validate)):
-    """Функция получает авторизованного текущего пользователя"""
-    return user
-
-
 @router.post("/auth/", response_model=GetMeUser)
 async def basic_auth(user: Users = Depends(basic_auth_validate)):
     """Функция производит авторизацию пользователя"""
@@ -58,7 +53,7 @@ async def basic_auth(user: Users = Depends(basic_auth_validate)):
 
 
 @router.get("/me/profile/", response_model=GetMeUser)
-async def get_user_me(user: Users = Depends(get_current_user)):
+async def get_user_me(user: Users = Depends(basic_auth_validate)):
     """Возвращает профиль пользователя"""
     async with ClientSession() as session:
         photo = await s3_client.get_object(bucket_name=user.username,
@@ -72,7 +67,7 @@ async def get_user_me(user: Users = Depends(get_current_user)):
 
 
 @router.patch('/update/avatar/')  # /update/avatar/
-async def update_avatar(photo: UploadFile, user: Users = Depends(get_current_user)):
+async def update_avatar(photo: UploadFile, user: Users = Depends(basic_auth_validate)):
     """Добавляет аватарку пользователю"""
     photo_data = await photo.read()
     filename = f'ava_{user.username}.png'
@@ -96,14 +91,18 @@ async def update_auth_user(component: Dict = Depends(get_auth_user_and_session))
 @router.delete('/delete/me/profile/')
 async def delete_auth_user(
         password: str,
-        component: Dict = Depends(get_auth_user_and_session)
+        component: Users = Depends(basic_auth_validate),
+        session: AsyncSession = Depends(get_async_session)
 ):
     """Удаление авторизованного пользователя"""
-    username = component['user'].username
-    if component['user'].password != password:
+    username = component.username
+    if not Hasher.verify_password(
+            plain_password=password,
+            hashed_password=component.hashed_password):  # сравниваем полученный пароль со старым
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Invalid old password")
-    await delete_user_db(username=username, session=component['session'])
+
+    await delete_user_db(username, session)
     await s3_client.remove_bucket(username)
     return {"success": "User deleted successfully!"}
 
