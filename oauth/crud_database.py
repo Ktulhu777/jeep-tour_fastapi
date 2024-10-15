@@ -5,6 +5,8 @@ from fastapi import HTTPException, status
 from models.models import Users
 
 
+
+
 async def add_user_in_database(username: str,
                                phone: str,
                                hashed_password: str,
